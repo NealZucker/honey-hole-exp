@@ -3,11 +3,11 @@ import path from 'path';
 
 export default {
   entry: [
-    path.resolve(__dirname, 'src/index')
+    path.resolve(__dirname, 'www/js/index')
   ],
   target: 'web',
   output: {
-    path: __dirname + '/dist', // Note: Physical files are only output by the production build task `npm run build`.
+    path: __dirname + '/www/js', // Note: Physical files are only output by the production build task `npm run build`.
     publicPath: '/',
     filename: 'bundle.js'
   },

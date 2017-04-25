@@ -1,6 +1,8 @@
 import {extendObservable} from 'mobx';
 import {browserHistory} from 'react-router';
 import React from 'react';
+const PROD = process.env.NODE_ENV === "production";
+const SITE =  "http://localhost:3000";
 
 export default class UserStore {
   constructor(){
@@ -23,7 +25,8 @@ export default class UserStore {
   }
 
   authUser(user) {
-    fetch('/api/authenticate', {
+    console.log("authUser", SITE);
+    fetch(SITE + '/api/authenticate', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',

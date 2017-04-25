@@ -25,27 +25,18 @@ class Navigation extends React.Component {
             <Nav>
               <LinkContainer to={{pathname: '/form'}}>
                 <NavItem>
-                  <i style={{color:'#F70025'}} className="fa fa-pie-chart fa-lg" aria-hidden="true"></i>
-                </NavItem>
-              </LinkContainer>
-              <LinkContainer to={{pathname: '/lifegoals'}}>
-                <NavItem>
-                  <i style={{color:'#F25C00'}} className="fa fa-heart fa-lg" aria-hidden="true"></i>
-                </NavItem>
-              </LinkContainer>
-              <LinkContainer to={{pathname: '/history'}}>
-                <NavItem>
-                  <i style={{color:'#FC354F'}} className="fa fa-database fa-lg" aria-hidden="true"></i>
+                  <i style={{color:'#F70025'}} className="fa fa-pie-chart fa-lg" aria-hidden="true"/>
                 </NavItem>
               </LinkContainer>
             </Nav>
             <Nav pullRight className="nav-bar-right">
               <Navbar.Text style={{color: "black"}}>
-                <i className="fa fa-user fa-lg" aria-hidden="true"></i> Welcome, {this.props.userStore.firstName}!
+                <i className="fa fa-user fa-lg" aria-hidden="true"/>
+                Welcome, {this.props.userStore.firstName}!
               </Navbar.Text>
               <LinkContainer onClick={this.props.userStore.logUserOut} to={{pathname: '/'}}>
                 <NavItem>
-                  <i style={{color: "black"}} className="fa fa-sign-out fa-lg" aria-hidden="true"></i>
+                  <i style={{color: "black"}} className="fa fa-sign-out fa-lg" aria-hidden="true"/>
                 </NavItem>
               </LinkContainer>
             </Nav>

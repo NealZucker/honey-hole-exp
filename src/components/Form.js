@@ -24,12 +24,12 @@ class Form extends React.Component {
 
   handleTempChange(e) {
     this.setState({temp: e.target.value});
-      console.log(this.state.temp);
+    console.log(this.state.temp);
   }
 
   handleNotesChange(e) {
     this.setState({notes: e.target.value});
-      console.log(this.state.notes);
+    console.log(this.state.notes);
   }
 
   handleSaveNotes(){

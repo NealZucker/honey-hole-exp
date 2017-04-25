@@ -20,97 +20,119 @@ var _open = require('open');
 
 var _open2 = _interopRequireDefault(_open);
 
+var _bodyParser = require('body-parser');
+
+var _bodyParser2 = _interopRequireDefault(_bodyParser);
+
+var _mongodbUri = require('mongodb-uri');
+
+var _mongodbUri2 = _interopRequireDefault(_mongodbUri);
+
 var _user = require('../models/user');
 
 var _user2 = _interopRequireDefault(_user);
 
-var _wheel = require('../models/wheel');
+var _location = require('../models/location');
 
-var _wheel2 = _interopRequireDefault(_wheel);
+var _location2 = _interopRequireDefault(_location);
 
 var _goal = require('../models/goal');
 
 var _goal2 = _interopRequireDefault(_goal);
 
-var _wheel3 = require('../routes/wheel');
+var _location3 = require('../routes/location');
 
-var _wheel4 = _interopRequireDefault(_wheel3);
+var _location4 = _interopRequireDefault(_location3);
 
 var _goal3 = require('../routes/goal');
 
 var _goal4 = _interopRequireDefault(_goal3);
 
+var _jsonwebtoken = require('jsonwebtoken');
+
+var _jsonwebtoken2 = _interopRequireDefault(_jsonwebtoken);
+
+var _authConfig = require('./authConfig');
+
+var _authConfig2 = _interopRequireDefault(_authConfig);
+
+var _morgan = require('morgan');
+
+var _morgan2 = _interopRequireDefault(_morgan);
+
+var _passwordHash = require('password-hash');
+
+var _passwordHash2 = _interopRequireDefault(_passwordHash);
+
+var _mongoose = require('mongoose');
+
+var _mongoose2 = _interopRequireDefault(_mongoose);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var bodyParser = require('body-parser');
-var uriUtil = require('mongodb-uri');
-
-var jwt = require('jsonwebtoken');
-var authConfig = require('./authConfig');
-var morgan = require('morgan');
 var apiRoutes = _express2.default.Router();
-var hash = require('password-hash');
-var mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
-var mongodbUri = process.env.MONGODB_URI || 'mongodb://localhost/lifecoach';
-var mongooseUri = uriUtil.formatMongoose(mongodbUri);
+_mongoose2.default.Promise = global.Promise;
+var mongodbUri = process.env.MONGODB_URI || 'mongodb://localhost/honeyhole';
+var mongooseUri = _mongodbUri2.default.formatMongoose(mongodbUri);
 var options = {
   server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } },
   replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } }
 };
-mongoose.connect(mongooseUri, options);
+_mongoose2.default.connect(mongooseUri, options);
 
 var port = process.env.PORT || 3000;
 var app = (0, _express2.default)();
 var PROD = process.env.NODE_ENV === 'production';
 
-app.set('superSecret', authConfig.secret);
-/* eslint-disable no-console */
+app.set('superSecret', _authConfig2.default.secret);
 var compiler = (0, _webpack2.default)(_webpackConfig2.default);
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(_bodyParser2.default.urlencoded({ extended: true }));
+app.use(_bodyParser2.default.json());
 
 app.use(_express2.default.static('public'));
 
 if (PROD) {
   app.use('/', _express2.default.static('dist'));
 } else {
-  // When not in production, enable hot reloading
   app.use(require('webpack-dev-middleware')(compiler, {
     noInfo: true,
     publicPath: _webpackConfig2.default.output.publicPath
   }));
   app.use(require('webpack-hot-middleware')(compiler));
-  app.use(morgan('dev'));
+  app.use((0, _morgan2.default)('dev'));
 }
 
-app.post('/newuser', function (req, res) {
+app.post('/newuser', function (req, res, next) {
   var user = new _user2.default({
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
-    password: hash.generate(req.body.password)
+    password: _passwordHash2.default.generate(req.body.password)
   });
   user.save(function (err) {
-    if (err) throw err;
-    console.log('User saved successfully');
-    res.json({ success: true, user: user });
+    if (err) {
+      next(err);
+    } else {
+      console.log('User saved successfully');
+      res.json({ success: true, user: user });
+    }
   });
 });
-apiRoutes.post('/authenticate', function (req, res) {
+apiRoutes.post('/authenticate', function (req, res, next) {
   _user2.default.findOne({
     email: req.body.email
   }, function (err, user) {
-    if (err) throw err;
-    if (!user) {
+    if (err) {
+      next(err);
+    } else if (!user) {
       res.json({ success: false, message: 'Authentication failed. User not found.' });
     } else if (user) {
       console.log(req.body.email, req.body.password, user);
-      if (!hash.verify(req.body.password, user.password)) {
+      if (!_passwordHash2.default.verify(req.body.password, user.password)) {
         res.json({ success: false, message: 'Authentication failed. Incorrect password.' });
       } else {
-        var token = jwt.sign(user, app.get('superSecret'), {
+        var token = _jsonwebtoken2.default.sign(user, app.get('superSecret'), {
           expiresIn: 1440
         });
         res.json({
@@ -127,7 +149,7 @@ apiRoutes.post('/authenticate', function (req, res) {
 apiRoutes.use(function (req, res, next) {
   var token = req.body.token || req.query.token || req.headers['x-access-token'];
   if (token) {
-    jwt.verify(token, app.get('superSecret'), function (err, decoded) {
+    _jsonwebtoken2.default.verify(token, app.get('superSecret'), function (err, decoded) {
       if (err) {
         return res.json({ success: false, message: 'Failed to authenticate token.' });
       } else {
@@ -154,7 +176,7 @@ app.get('/', function (req, res) {
   res.sendFile(_path2.default.join(__dirname, '../public/index.html'));
 });
 
-app.use('/wheel', _wheel4.default);
+app.use('/location', _location4.default);
 app.use('/goal', _goal4.default);
 
 app.use('/api', apiRoutes);
