@@ -24781,9 +24781,13 @@ function createLocationDescriptor(to, query, hash, state) {
   return to;
 }
 
+function resolveToLocation(to, router) {
+  return typeof to === 'function' ? to(router.location) : to;
+}
+
 var propTypes = {
   onlyActiveOnIndex: _propTypes2.default.bool.isRequired,
-  to: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.object]).isRequired,
+  to: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.object, _propTypes2.default.func]).isRequired,
   query: _propTypes2.default.string,
   hash: _propTypes2.default.string,
   state: _propTypes2.default.object,
@@ -24825,6 +24829,9 @@ var LinkContainer = function (_React$Component) {
           onClick = _this$props.onClick,
           target = _this$props.target,
           action = _this$props.action;
+      var router = _this.context.router;
+
+      var toLocation = resolveToLocation(to, router);
 
       if (children.props.onClick) {
         children.props.onClick(event);
@@ -24840,7 +24847,7 @@ var LinkContainer = function (_React$Component) {
 
       event.preventDefault();
 
-      _this.context.router[action](createLocationDescriptor(to, query, hash, state));
+      router[action](createLocationDescriptor(toLocation, query, hash, state));
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
@@ -24853,14 +24860,16 @@ var LinkContainer = function (_React$Component) {
         children = _props.children,
         props = _objectWithoutProperties(_props, ['onlyActiveOnIndex', 'to', 'children']);
 
+    var toLocation = resolveToLocation(to, router);
+
     props.onClick = this.onClick;
 
     // Ignore if rendered outside Router context; simplifies unit testing.
     if (router) {
-      props.href = router.createHref(to);
+      props.href = router.createHref(toLocation);
 
       if (props.active == null) {
-        props.active = router.isActive(to, onlyActiveOnIndex);
+        props.active = router.isActive(toLocation, onlyActiveOnIndex);
       }
     }
 
@@ -26787,7 +26796,6 @@ var app = {
       _react2.default.createElement(
         _reactRouter.Router,
         { history: _reactRouter.browserHistory },
-        _react2.default.createElement(_reactRouter.Route, { path: '*', component: _EntryPage2.default }),
         _react2.default.createElement(_reactRouter.Route, { path: '/', component: _EntryPage2.default }),
         _react2.default.createElement(
           _reactRouter.Route,
@@ -26799,7 +26807,8 @@ var app = {
             _react2.default.createElement(_reactRouter.Route, { path: '/form', component: _Form2.default }),
             _react2.default.createElement(_reactRouter.Route, { path: '/history', component: History })
           )
-        )
+        ),
+        _react2.default.createElement(_reactRouter.Route, { path: '*', component: _EntryPage2.default })
       )
     ), document.getElementById('app'));
   }
@@ -59708,6 +59717,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var PROD = process.env.NODE_ENV === "production";
 var SITE = "http://localhost:3000";
+var _DEV = true; //Make this false for production
 
 var UserStore = function () {
   function UserStore() {
@@ -59729,6 +59739,7 @@ var UserStore = function () {
     this.setUser = this.setUser.bind(this);
     this.logUserOut = this.logUserOut.bind(this);
     this.displayWelcome = this.displayWelcome.bind(this);
+    this.logUser = this.logUser.bind(this);
   }
 
   _createClass(UserStore, [{
@@ -59737,6 +59748,10 @@ var UserStore = function () {
       var _this = this;
 
       console.log("authUser", SITE);
+      if (_DEV) {
+        this.logUser({ token: "asdfkjhsadlfkjh", userId: "teasdkjdfskjh;", firstName: "testUser" });
+        return;
+      }
       fetch(SITE + '/api/authenticate', {
         method: 'POST',
         headers: {
@@ -59750,16 +59765,21 @@ var UserStore = function () {
       }).then(function (result) {
         return result.json();
       }).then(function (res) {
-        _this.token = res.token;
-        _this.userId = res.userId;
-        _this.firstName = res.firstName;
-        if (res.token) {
-          _this.isLoggedIn = true;
-          _reactRouter.browserHistory.replace("/home");
-        } else {
-          _this.failedLogin = true;
-        }
+        return _this.logUser(res);
       });
+    }
+  }, {
+    key: 'logUser',
+    value: function logUser(res) {
+      this.token = res.token;
+      this.userId = res.userId;
+      this.firstName = res.firstName;
+      if (res.token) {
+        this.isLoggedIn = true;
+        _reactRouter.browserHistory.replace("/home");
+      } else {
+        this.failedLogin = true;
+      }
     }
   }, {
     key: 'setUser',

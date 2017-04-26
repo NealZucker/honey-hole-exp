@@ -30,17 +30,15 @@ let app = {
     ReactDOM.render((
       <Provider userStore={userStore} locationStore={locationStore}>
         <Router history={browserHistory}>
-        <Route path="*" component={EntryPage}/>
-        <Route path="/" component={EntryPage}/>
-        <Route component={EnsureLoggedInContainer}>
-          <Route path="/home" component={App}>
-            <IndexRoute component={Home}/>
-            <Route path="/form" component={Form}/>
-            <Route path="/history" component={History}/>
+          <Route path="/" component={EntryPage}/>
+          <Route component={EnsureLoggedInContainer}>
+            <Route path="/home" component={App}>
+              <IndexRoute component={Home}/>
+              <Route path="/form" component={Form}/>
+              <Route path="/history" component={History}/>
+            </Route>
           </Route>
-        </Route>
-
-
+          <Route path="*" component={EntryPage}/>
         </Router>
       </Provider>
     ), document.getElementById('app'));
