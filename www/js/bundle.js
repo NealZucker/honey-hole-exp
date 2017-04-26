@@ -24781,13 +24781,9 @@ function createLocationDescriptor(to, query, hash, state) {
   return to;
 }
 
-function resolveToLocation(to, router) {
-  return typeof to === 'function' ? to(router.location) : to;
-}
-
 var propTypes = {
   onlyActiveOnIndex: _propTypes2.default.bool.isRequired,
-  to: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.object, _propTypes2.default.func]).isRequired,
+  to: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.object]).isRequired,
   query: _propTypes2.default.string,
   hash: _propTypes2.default.string,
   state: _propTypes2.default.object,
@@ -24829,9 +24825,6 @@ var LinkContainer = function (_React$Component) {
           onClick = _this$props.onClick,
           target = _this$props.target,
           action = _this$props.action;
-      var router = _this.context.router;
-
-      var toLocation = resolveToLocation(to, router);
 
       if (children.props.onClick) {
         children.props.onClick(event);
@@ -24847,7 +24840,7 @@ var LinkContainer = function (_React$Component) {
 
       event.preventDefault();
 
-      router[action](createLocationDescriptor(toLocation, query, hash, state));
+      _this.context.router[action](createLocationDescriptor(to, query, hash, state));
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
@@ -24860,16 +24853,14 @@ var LinkContainer = function (_React$Component) {
         children = _props.children,
         props = _objectWithoutProperties(_props, ['onlyActiveOnIndex', 'to', 'children']);
 
-    var toLocation = resolveToLocation(to, router);
-
     props.onClick = this.onClick;
 
     // Ignore if rendered outside Router context; simplifies unit testing.
     if (router) {
-      props.href = router.createHref(toLocation);
+      props.href = router.createHref(to);
 
       if (props.active == null) {
-        props.active = router.isActive(toLocation, onlyActiveOnIndex);
+        props.active = router.isActive(to, onlyActiveOnIndex);
       }
     }
 
